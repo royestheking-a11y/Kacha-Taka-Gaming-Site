@@ -23,12 +23,25 @@ export default async function handler(req, res) {
   // Extract pathname from request
   // In Vercel catch-all route, req.query.path is an array of path segments
   let pathname = '/';
-  if (req.query && req.query.path) {
-    const pathSegments = Array.isArray(req.query.path) ? req.query.path : [req.query.path];
-    pathname = '/' + pathSegments.join('/');
-  } else if (req.url) {
-    // Fallback to URL parsing if query.path is not available
-    pathname = req.url.split('?')[0].replace(/^\/api/, '') || '/';
+  try {
+    if (req.query && req.query.path) {
+      const pathSegments = Array.isArray(req.query.path) ? req.query.path : [req.query.path];
+      pathname = '/' + pathSegments.filter(Boolean).join('/');
+    } else if (req.url) {
+      // Fallback to URL parsing if query.path is not available
+      const urlPath = req.url.split('?')[0];
+      pathname = urlPath.replace(/^\/api/, '') || '/';
+    }
+    
+    // Ensure pathname starts with /
+    if (!pathname.startsWith('/')) {
+      pathname = '/' + pathname;
+    }
+    
+    console.log('API Request:', { method: req.method, pathname, url: req.url, query: req.query });
+  } catch (pathError) {
+    console.error('Path extraction error:', pathError);
+    return res.status(500).json({ message: 'Invalid request path', error: pathError.message });
   }
 
   try {
@@ -68,10 +81,16 @@ export default async function handler(req, res) {
       return res.status(405).json({ message: 'Method not allowed' });
     }
 
-    return res.status(404).json({ message: 'Not found' });
+    console.log('Route not found:', pathname);
+    return res.status(404).json({ message: 'Not found', pathname });
   } catch (error) {
     console.error('API Error:', error);
-    return res.status(500).json({ message: error.message || 'Internal server error' });
+    console.error('Error stack:', error.stack);
+    return res.status(500).json({ 
+      message: error.message || 'Internal server error',
+      pathname,
+      error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 }
 
