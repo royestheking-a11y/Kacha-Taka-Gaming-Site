@@ -19,8 +19,8 @@ export default async function transactionsRoutes(req, res, pathname) {
         });
         return res.status(201).json(transaction);
       } else if (req.method === 'GET') {
-        const url = new URL(req.url, `http://${req.headers.host}`);
-        const status = url.searchParams.get('status');
+        const urlParams = new URLSearchParams(req.url.split('?')[1] || '');
+        const status = urlParams.get('status');
         
         const query = { userId: authResult.user._id };
         if (status) query.status = status;

@@ -20,9 +20,9 @@ export default async function gamesRoutes(req, res, pathname) {
         });
         return res.status(201).json(gameHistory);
       } else if (req.method === 'GET') {
-        const url = new URL(req.url, `http://${req.headers.host}`);
-        const game = url.searchParams.get('game');
-        const limit = parseInt(url.searchParams.get('limit') || '100');
+        const urlParams = new URLSearchParams(req.url.split('?')[1] || '');
+        const game = urlParams.get('game');
+        const limit = parseInt(urlParams.get('limit') || '100');
         
         const query = { userId: authResult.user._id };
         if (game) query.game = game;
