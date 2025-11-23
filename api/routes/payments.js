@@ -5,7 +5,15 @@ import Transaction from '../../server/models/Transaction.js';
 import { authenticate, isAdmin } from '../_lib/auth.js';
 
 export default async function paymentsRoutes(req, res, pathname) {
-  await connectDB();
+  try {
+    await connectDB();
+  } catch (dbError) {
+    console.error('Database connection error:', dbError);
+    return res.status(500).json({ 
+      message: 'Database connection failed', 
+      error: dbError.message 
+    });
+  }
 
   // Get all payments or create payment request
   if (pathname === '/payments') {

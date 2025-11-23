@@ -10,7 +10,15 @@ const generateToken = (userId) => {
 };
 
 export default async function authRoutes(req, res, pathname) {
-  await connectDB();
+  try {
+    await connectDB();
+  } catch (dbError) {
+    console.error('Database connection error:', dbError);
+    return res.status(500).json({ 
+      message: 'Database connection failed', 
+      error: dbError.message 
+    });
+  }
 
   // Register
   if (pathname === '/auth/register' && req.method === 'POST') {

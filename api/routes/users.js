@@ -3,7 +3,15 @@ import User from '../../server/models/User.js';
 import { authenticate, isAdmin } from '../_lib/auth.js';
 
 export default async function usersRoutes(req, res, pathname) {
-  await connectDB();
+  try {
+    await connectDB();
+  } catch (dbError) {
+    console.error('Database connection error:', dbError);
+    return res.status(500).json({ 
+      message: 'Database connection failed', 
+      error: dbError.message 
+    });
+  }
 
   // Get all users (Admin only)
   if (pathname === '/users' && req.method === 'GET') {
@@ -22,7 +30,11 @@ export default async function usersRoutes(req, res, pathname) {
       // Transform MongoDB documents to JSON format
       return res.json(users.map(user => user.toJSON()));
     } catch (error) {
-      return res.status(500).json({ message: error.message });
+      console.error('Error fetching users:', error);
+      return res.status(500).json({ 
+        message: error.message || 'Failed to fetch users',
+        error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
     }
   }
 

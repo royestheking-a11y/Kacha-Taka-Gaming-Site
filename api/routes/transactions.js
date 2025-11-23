@@ -3,7 +3,15 @@ import Transaction from '../../server/models/Transaction.js';
 import { authenticate } from '../_lib/auth.js';
 
 export default async function transactionsRoutes(req, res, pathname) {
-  await connectDB();
+  try {
+    await connectDB();
+  } catch (dbError) {
+    console.error('Database connection error:', dbError);
+    return res.status(500).json({ 
+      message: 'Database connection failed', 
+      error: dbError.message 
+    });
+  }
 
   if (pathname === '/transactions') {
     try {

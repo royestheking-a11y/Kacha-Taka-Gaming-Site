@@ -5,7 +5,15 @@ import PlatformStats from '../../server/models/PlatformStats.js';
 import { authenticate, isAdmin } from '../_lib/auth.js';
 
 export default async function settingsRoutes(req, res, pathname) {
-  await connectDB();
+  try {
+    await connectDB();
+  } catch (dbError) {
+    console.error('Database connection error:', dbError);
+    return res.status(500).json({ 
+      message: 'Database connection failed', 
+      error: dbError.message 
+    });
+  }
 
   // Game settings
   if (pathname === '/settings/game') {
