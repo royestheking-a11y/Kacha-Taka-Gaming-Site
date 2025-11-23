@@ -20,8 +20,8 @@ export default async function handler(req, res) {
     return res.status(200).json({});
   }
 
-  const url = new URL(req.url, `http://${req.headers.host}`);
-  const pathname = url.pathname.replace('/api', '');
+  // Extract pathname from request
+  const pathname = req.url.split('?')[0].replace('/api', '');
 
   try {
     // Route to appropriate handler
