@@ -24,13 +24,21 @@ export default async function handler(req, res) {
   // In Vercel catch-all route, req.query.path is an array of path segments
   let pathname = '/';
   try {
+    // Try multiple methods to extract pathname
     if (req.query && req.query.path) {
+      // Catch-all route: req.query.path is an array
       const pathSegments = Array.isArray(req.query.path) ? req.query.path : [req.query.path];
       pathname = '/' + pathSegments.filter(Boolean).join('/');
     } else if (req.url) {
-      // Fallback to URL parsing if query.path is not available
+      // Fallback: parse from URL
       const urlPath = req.url.split('?')[0];
+      // Remove /api prefix if present
       pathname = urlPath.replace(/^\/api/, '') || '/';
+    }
+    
+    // Handle empty pathname
+    if (!pathname || pathname === '') {
+      pathname = '/';
     }
     
     // Ensure pathname starts with /
@@ -38,7 +46,14 @@ export default async function handler(req, res) {
       pathname = '/' + pathname;
     }
     
-    console.log('API Request:', { method: req.method, pathname, url: req.url, query: req.query });
+    // Log for debugging
+    console.log('API Request:', { 
+      method: req.method, 
+      pathname, 
+      url: req.url, 
+      query: req.query,
+      headers: req.headers 
+    });
   } catch (pathError) {
     console.error('Path extraction error:', pathError);
     return res.status(500).json({ message: 'Invalid request path', error: pathError.message });
