@@ -60,9 +60,11 @@ async function connectDB() {
     };
 
     console.log('Connecting to MongoDB...');
+    console.log('MongoDB URI:', MONGODB_URI ? `${MONGODB_URI.substring(0, 20)}...` : 'NOT SET');
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
       console.log('✅ MongoDB Connected:', mongoose.connection.name);
       console.log('Connection state:', mongoose.connection.readyState);
+      console.log('MongoDB readyState:', mongoose.connection.readyState === 1 ? 'CONNECTED' : 'NOT CONNECTED');
       
       // Set up connection event handlers
       mongoose.connection.on('error', (err) => {

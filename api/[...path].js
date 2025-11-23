@@ -27,25 +27,28 @@ export default async function handler(req, res) {
       url: req.url,
       method: req.method,
       query: req.query,
+      catchAllPath: req.query['...path'],
       pathname: req.query?.path,
       headers: Object.keys(req.headers)
     });
   }
 
   // Extract pathname from request
-  // In Vercel catch-all route, req.query.path is an array of path segments
+  // In Vercel catch-all route [...path].js, the parameter is '...path' (with dots)
   let pathname = '/';
   try {
-    // Method 1: Check for catch-all route parameter (most reliable for Vercel)
-    // For [...path].js, req.query.path contains the path segments
-    if (req.query && req.query.path !== undefined && req.query.path !== null) {
-      if (Array.isArray(req.query.path)) {
+    // Method 1: Check for catch-all route parameter
+    // Vercel uses '...path' as the key for catch-all routes
+    const catchAllPath = req.query['...path'] || req.query.path;
+    
+    if (catchAllPath !== undefined && catchAllPath !== null) {
+      if (Array.isArray(catchAllPath)) {
         // Array format: ['settings', 'global'] -> '/settings/global'
-        const segments = req.query.path.filter(Boolean);
+        const segments = catchAllPath.filter(Boolean);
         pathname = segments.length > 0 ? '/' + segments.join('/') : '/';
-      } else if (typeof req.query.path === 'string' && req.query.path.trim() !== '') {
-        // String format: 'settings/global' -> '/settings/global'
-        pathname = '/' + req.query.path.trim();
+      } else if (typeof catchAllPath === 'string' && catchAllPath.trim() !== '') {
+        // String format: 'settings/global' or 'transactions' -> '/settings/global' or '/transactions'
+        pathname = '/' + catchAllPath.trim();
       }
     }
     
@@ -81,9 +84,10 @@ export default async function handler(req, res) {
       pathname, 
       url: req.url, 
       query: req.query,
+      catchAllPath: req.query['...path'],
       queryPath: req.query?.path,
       queryPathType: typeof req.query?.path,
-      isArray: Array.isArray(req.query?.path),
+      isArray: Array.isArray(req.query?.['...path']),
       rawQuery: JSON.stringify(req.query)
     });
   } catch (pathError) {
