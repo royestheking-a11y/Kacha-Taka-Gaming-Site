@@ -24,25 +24,36 @@ export default async function handler(req, res) {
   // In Vercel catch-all route, req.query.path is an array of path segments
   let pathname = '/';
   try {
-    // Try multiple methods to extract pathname
-    if (req.query && req.query.path) {
-      // Catch-all route: req.query.path is an array
-      const pathSegments = Array.isArray(req.query.path) ? req.query.path : [req.query.path];
-      pathname = '/' + pathSegments.filter(Boolean).join('/');
-    } else if (req.url) {
-      // Fallback: parse from URL
+    // Method 1: Check for catch-all route parameter (most reliable for Vercel)
+    if (req.query && typeof req.query.path !== 'undefined') {
+      // Catch-all route: req.query.path can be a string or array
+      if (Array.isArray(req.query.path)) {
+        // Array format: ['settings', 'global'] -> '/settings/global'
+        pathname = '/' + req.query.path.filter(Boolean).join('/');
+      } else if (typeof req.query.path === 'string') {
+        // String format: 'settings/global' -> '/settings/global'
+        pathname = '/' + req.query.path;
+      }
+    }
+    
+    // Method 2: Parse from URL if pathname is still '/' or invalid
+    if ((pathname === '/' || !pathname) && req.url) {
       const urlPath = req.url.split('?')[0];
       // Remove /api prefix if present
-      pathname = urlPath.replace(/^\/api/, '') || '/';
+      const extracted = urlPath.replace(/^\/api/, '') || '/';
+      if (extracted !== '/') {
+        pathname = extracted;
+      }
     }
     
-    // Handle empty pathname
-    if (!pathname || pathname === '') {
+    // Clean up pathname
+    // Remove query string if present in pathname
+    pathname = pathname.split('?')[0];
+    // Remove leading/trailing slashes except for root
+    pathname = pathname.replace(/^\/+|\/+$/g, '');
+    if (!pathname) {
       pathname = '/';
-    }
-    
-    // Ensure pathname starts with /
-    if (!pathname.startsWith('/')) {
+    } else if (!pathname.startsWith('/')) {
       pathname = '/' + pathname;
     }
     
@@ -52,7 +63,9 @@ export default async function handler(req, res) {
       pathname, 
       url: req.url, 
       query: req.query,
-      headers: req.headers 
+      queryPath: req.query?.path,
+      queryPathType: typeof req.query?.path,
+      isArray: Array.isArray(req.query?.path)
     });
   } catch (pathError) {
     console.error('Path extraction error:', pathError);
@@ -62,19 +75,26 @@ export default async function handler(req, res) {
   try {
     // Route to appropriate handler
     if (pathname.startsWith('/auth')) {
-      return await authRoutes(req, res, pathname);
+      const result = await authRoutes(req, res, pathname);
+      if (result) return result;
     } else if (pathname.startsWith('/users')) {
-      return await usersRoutes(req, res, pathname);
+      const result = await usersRoutes(req, res, pathname);
+      if (result) return result;
     } else if (pathname.startsWith('/games')) {
-      return await gamesRoutes(req, res, pathname);
+      const result = await gamesRoutes(req, res, pathname);
+      if (result) return result;
     } else if (pathname.startsWith('/transactions')) {
-      return await transactionsRoutes(req, res, pathname);
+      const result = await transactionsRoutes(req, res, pathname);
+      if (result) return result;
     } else if (pathname.startsWith('/messages')) {
-      return await messagesRoutes(req, res, pathname);
+      const result = await messagesRoutes(req, res, pathname);
+      if (result) return result;
     } else if (pathname.startsWith('/payments')) {
-      return await paymentsRoutes(req, res, pathname);
+      const result = await paymentsRoutes(req, res, pathname);
+      if (result) return result;
     } else if (pathname.startsWith('/settings')) {
-      return await settingsRoutes(req, res, pathname);
+      const result = await settingsRoutes(req, res, pathname);
+      if (result) return result;
     } else if (pathname === '/health') {
       return res.json({ 
         status: 'OK', 
