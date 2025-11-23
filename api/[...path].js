@@ -37,23 +37,8 @@ export default async function handler(req, res) {
   // In Vercel catch-all route [...path].js, the parameter is '...path' (with dots)
   let pathname = '/';
   try {
-    // Method 1: Check for catch-all route parameter
-    // Vercel uses '...path' as the key for catch-all routes
-    const catchAllPath = req.query['...path'] || req.query.path;
-    
-    if (catchAllPath !== undefined && catchAllPath !== null) {
-      if (Array.isArray(catchAllPath)) {
-        // Array format: ['settings', 'global'] -> '/settings/global'
-        const segments = catchAllPath.filter(Boolean);
-        pathname = segments.length > 0 ? '/' + segments.join('/') : '/';
-      } else if (typeof catchAllPath === 'string' && catchAllPath.trim() !== '') {
-        // String format: 'settings/global' or 'transactions' -> '/settings/global' or '/transactions'
-        pathname = '/' + catchAllPath.trim();
-      }
-    }
-    
-    // Method 2: Parse from URL if pathname is still '/' or invalid
-    if (pathname === '/' && req.url) {
+    // Always parse from URL first as it's most reliable
+    if (req.url) {
       try {
         const urlPath = req.url.split('?')[0];
         // Remove /api prefix if present
@@ -65,6 +50,21 @@ export default async function handler(req, res) {
         }
       } catch (urlError) {
         console.error('URL parsing error:', urlError);
+      }
+    }
+    
+    // Also check catch-all route parameter as fallback
+    // Vercel uses '...path' as the key for catch-all routes
+    const catchAllPath = req.query['...path'] || req.query.path;
+    
+    if (catchAllPath !== undefined && catchAllPath !== null && pathname === '/') {
+      if (Array.isArray(catchAllPath)) {
+        // Array format: ['settings', 'global'] -> '/settings/global'
+        const segments = catchAllPath.filter(Boolean);
+        pathname = segments.length > 0 ? '/' + segments.join('/') : '/';
+      } else if (typeof catchAllPath === 'string' && catchAllPath.trim() !== '') {
+        // String format: 'settings/global' or 'transactions' -> '/settings/global' or '/transactions'
+        pathname = '/' + catchAllPath.trim();
       }
     }
     
