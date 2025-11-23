@@ -16,6 +16,7 @@ export default async function handler(req, res) {
   console.log('URL:', req.url);
   console.log('Method:', req.method);
   console.log('Query:', JSON.stringify(req.query));
+  console.log('Headers:', Object.keys(req.headers));
   
   // Set CORS headers
   Object.entries(corsHeaders()).forEach(([key, value]) => {
@@ -24,6 +25,12 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') {
     return res.status(200).json({});
+  }
+  
+  // If request doesn't have a URL, return error
+  if (!req.url) {
+    console.error('No URL in request!');
+    return res.status(500).json({ message: 'Invalid request - no URL' });
   }
 
   // Debug endpoint to test routing
