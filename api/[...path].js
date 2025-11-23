@@ -21,9 +21,9 @@ export default async function handler(req, res) {
   }
 
   // Extract pathname from request
-  // In Vercel, req.url contains the full path including /api
-  const urlPath = req.url || '';
-  const pathname = urlPath.split('?')[0].replace(/^\/api/, '') || '/';
+  // In Vercel catch-all route, req.query.path is an array of path segments
+  const pathSegments = req.query.path || [];
+  const pathname = '/' + pathSegments.join('/');
 
   try {
     // Route to appropriate handler
