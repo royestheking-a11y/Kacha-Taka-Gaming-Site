@@ -11,6 +11,12 @@ import paymentsRoutes from './routes/payments.js';
 import settingsRoutes from './routes/settings.js';
 
 export default async function handler(req, res) {
+  // IMPORTANT: Log ALL requests to verify they reach this handler
+  console.log('=== CATCH-ALL HANDLER CALLED ===');
+  console.log('URL:', req.url);
+  console.log('Method:', req.method);
+  console.log('Query:', JSON.stringify(req.query));
+  
   // Set CORS headers
   Object.entries(corsHeaders()).forEach(([key, value]) => {
     res.setHeader(key, value);
