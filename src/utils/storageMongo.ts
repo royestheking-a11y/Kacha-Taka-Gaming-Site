@@ -62,29 +62,39 @@ export async function initializeStorage() {
 
 // Transform MongoDB document to app format
 function transformDoc(doc: any) {
+  if (!doc) return null;
+  
+  // Handle both MongoDB document format and plain object format
+  const docObj = doc.toJSON ? doc.toJSON() : doc;
+  
   return {
-    id: doc._id || doc.id,
-    ...doc,
-    timestamp: doc.createdAt || doc.timestamp || new Date().toISOString(),
+    id: docObj._id?.toString() || docObj.id?.toString() || docObj.id,
+    ...docObj,
+    timestamp: docObj.createdAt || docObj.timestamp || new Date().toISOString(),
   };
 }
 
 // Transform MongoDB user to app format
 function transformUser(user: any): User {
+  if (!user) return null as any;
+  
+  // Handle both MongoDB document format and plain object format
+  const userObj = user.toJSON ? user.toJSON() : user;
+  
   return {
-    id: user._id || user.id,
-    name: user.name,
-    email: user.email,
-    phone: user.phone || '',
-    demoPoints: user.demoPoints || 0,
-    realBalance: user.realBalance || 0,
-    isAdmin: user.isAdmin || false,
-    createdAt: user.createdAt || new Date().toISOString(),
-    kycStatus: user.kycStatus || 'pending',
-    referralCode: user.referralCode,
-    referredBy: user.referredBy?.toString() || user.referredBy || '',
-    referralEarnings: user.referralEarnings || 0,
-    lastDailySpin: user.lastDailySpin || undefined,
+    id: userObj._id?.toString() || userObj.id?.toString() || userObj.id,
+    name: userObj.name || '',
+    email: userObj.email || '',
+    phone: userObj.phone || '',
+    demoPoints: Number(userObj.demoPoints) || 0,
+    realBalance: Number(userObj.realBalance) || 0,
+    isAdmin: Boolean(userObj.isAdmin) || false,
+    createdAt: userObj.createdAt || userObj.timestamp || new Date().toISOString(),
+    kycStatus: userObj.kycStatus || 'pending',
+    referralCode: userObj.referralCode || undefined,
+    referredBy: userObj.referredBy?.toString() || userObj.referredBy || '',
+    referralEarnings: Number(userObj.referralEarnings) || 0,
+    lastDailySpin: userObj.lastDailySpin || undefined,
   };
 }
 
