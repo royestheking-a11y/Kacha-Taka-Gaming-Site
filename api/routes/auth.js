@@ -57,7 +57,15 @@ export default async function authRoutes(req, res, pathname) {
         return res.status(400).json({ message: 'Email and password are required' });
       }
 
-      const user = await User.findOne({ email: email.toLowerCase() });
+      let user = await User.findOne({ email: email.toLowerCase() });
+      
+      // Auto-initialize admin if trying to login with admin credentials and user doesn't exist
+      if (!user && email.toLowerCase() === 'admin@kachataka.com' && password === 'kachataka') {
+        console.log('Auto-initializing admin user...');
+        const { initializeAdmin } = await import('../_lib/init.js');
+        user = await initializeAdmin();
+      }
+      
       if (!user) {
         return res.status(401).json({ message: 'Invalid email or password' });
       }
