@@ -18,7 +18,7 @@ export default async function gamesRoutes(req, res, pathname) {
           ...req.body,
           userId: authResult.user._id
         });
-        return res.status(201).json(gameHistory);
+        return res.status(201).json(gameHistory.toJSON());
       } else if (req.method === 'GET') {
         const urlParams = new URLSearchParams(req.url.split('?')[1] || '');
         const game = urlParams.get('game');
@@ -32,7 +32,7 @@ export default async function gamesRoutes(req, res, pathname) {
           .limit(limit)
           .populate('userId', 'name email');
 
-        return res.json(history);
+        return res.json(history.map(h => h.toJSON()));
       }
     } catch (error) {
       return res.status(500).json({ message: error.message });

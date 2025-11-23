@@ -21,7 +21,7 @@ export default async function paymentsRoutes(req, res, pathname) {
           userId: authResult.user._id,
           userName: authResult.user.name
         });
-        return res.status(201).json(paymentRequest);
+        return res.status(201).json(paymentRequest.toJSON());
       } else if (req.method === 'GET') {
         const urlParams = new URLSearchParams(req.url.split('?')[1] || '');
         const status = urlParams.get('status');
@@ -33,7 +33,7 @@ export default async function paymentsRoutes(req, res, pathname) {
           .sort({ createdAt: -1 })
           .populate('userId', 'name email');
 
-        return res.json(requests);
+        return res.json(requests.map(r => r.toJSON()));
       }
     } catch (error) {
       return res.status(500).json({ message: error.message });
@@ -113,7 +113,7 @@ export default async function paymentsRoutes(req, res, pathname) {
           }
         }
 
-        return res.json(request);
+        return res.json(request.toJSON());
       } else if (req.method === 'DELETE') {
         const request = await PaymentRequest.findById(id);
         if (!request) {

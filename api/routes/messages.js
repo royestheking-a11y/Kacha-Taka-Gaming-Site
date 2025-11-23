@@ -19,7 +19,7 @@ export default async function messagesRoutes(req, res, pathname) {
           userId: authResult.user._id,
           userName: authResult.user.name
         });
-        return res.status(201).json(message);
+        return res.status(201).json(message.toJSON());
       } else if (req.method === 'GET') {
         const urlParams = new URLSearchParams(req.url.split('?')[1] || '');
         const status = urlParams.get('status');
@@ -31,7 +31,7 @@ export default async function messagesRoutes(req, res, pathname) {
           .sort({ createdAt: -1 })
           .populate('userId', 'name email');
 
-        return res.json(messages);
+        return res.json(messages.map(m => m.toJSON()));
       }
     } catch (error) {
       return res.status(500).json({ message: error.message });
@@ -63,7 +63,7 @@ export default async function messagesRoutes(req, res, pathname) {
       Object.assign(message, req.body);
       await message.save();
 
-      return res.json(message);
+      return res.json(message.toJSON());
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }

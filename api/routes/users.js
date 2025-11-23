@@ -19,7 +19,8 @@ export default async function usersRoutes(req, res, pathname) {
       }
 
       const users = await User.find().select('-password').sort({ createdAt: -1 });
-      return res.json(users);
+      // Transform MongoDB documents to JSON format
+      return res.json(users.map(user => user.toJSON()));
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
@@ -33,7 +34,7 @@ export default async function usersRoutes(req, res, pathname) {
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
-      return res.json(user);
+      return res.json(user.toJSON());
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
@@ -49,7 +50,7 @@ export default async function usersRoutes(req, res, pathname) {
 
       const id = pathname.split('/users/')[1].split('/referrals')[0];
       const referrals = await User.find({ referredBy: id }).select('-password');
-      return res.json(referrals);
+      return res.json(referrals.map(user => user.toJSON()));
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
@@ -101,7 +102,7 @@ export default async function usersRoutes(req, res, pathname) {
         if (!user) {
           return res.status(404).json({ message: 'User not found' });
         }
-        return res.json(user);
+        return res.json(user.toJSON());
       } else if (req.method === 'PUT') {
         if (id !== authResult.user._id.toString() && !authResult.user.isAdmin) {
           return res.status(403).json({ message: 'Access denied' });

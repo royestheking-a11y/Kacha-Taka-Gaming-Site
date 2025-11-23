@@ -12,7 +12,7 @@ export default async function settingsRoutes(req, res, pathname) {
     try {
       if (req.method === 'GET') {
         const settings = await GameSettings.getSettings();
-        return res.json(settings);
+        return res.json(settings.toJSON());
       } else if (req.method === 'PUT') {
         const authResult = await authenticate(req);
         if (authResult.error) {
@@ -37,7 +37,7 @@ export default async function settingsRoutes(req, res, pathname) {
           if (dice) settings.dice = dice;
           await settings.save();
         }
-        return res.json(settings);
+        return res.json(settings.toJSON ? settings.toJSON() : settings);
       }
     } catch (error) {
       console.error('Game settings error:', error);
@@ -50,7 +50,7 @@ export default async function settingsRoutes(req, res, pathname) {
     try {
       if (req.method === 'GET') {
         const settings = await GlobalSettings.getSettings();
-        return res.json(settings);
+        return res.json(settings.toJSON());
       } else if (req.method === 'PUT') {
         const authResult = await authenticate(req);
         if (authResult.error) {
@@ -69,7 +69,7 @@ export default async function settingsRoutes(req, res, pathname) {
           Object.assign(settings, req.body);
           await settings.save();
         }
-        return res.json(settings);
+        return res.json(settings.toJSON ? settings.toJSON() : settings);
       }
     } catch (error) {
       return res.status(500).json({ message: error.message });
@@ -81,7 +81,7 @@ export default async function settingsRoutes(req, res, pathname) {
     try {
       if (req.method === 'GET') {
         const stats = await PlatformStats.getStats();
-        return res.json(stats);
+        return res.json(stats.toJSON());
       } else if (req.method === 'PUT') {
         const authResult = await authenticate(req);
         if (authResult.error) {
@@ -100,7 +100,7 @@ export default async function settingsRoutes(req, res, pathname) {
           Object.assign(stats, req.body);
           await stats.save();
         }
-        return res.json(stats);
+        return res.json(stats.toJSON());
       }
     } catch (error) {
       return res.status(500).json({ message: error.message });
