@@ -22,8 +22,14 @@ export default async function handler(req, res) {
 
   // Extract pathname from request
   // In Vercel catch-all route, req.query.path is an array of path segments
-  const pathSegments = req.query.path || [];
-  const pathname = '/' + pathSegments.join('/');
+  let pathname = '/';
+  if (req.query && req.query.path) {
+    const pathSegments = Array.isArray(req.query.path) ? req.query.path : [req.query.path];
+    pathname = '/' + pathSegments.join('/');
+  } else if (req.url) {
+    // Fallback to URL parsing if query.path is not available
+    pathname = req.url.split('?')[0].replace(/^\/api/, '') || '/';
+  }
 
   try {
     // Route to appropriate handler
