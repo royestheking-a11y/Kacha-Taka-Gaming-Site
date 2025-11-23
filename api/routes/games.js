@@ -22,10 +22,12 @@ export default async function gamesRoutes(req, res, pathname) {
       }
 
       if (req.method === 'POST') {
+        console.log('Creating game history:', req.body);
         const gameHistory = await GameHistory.create({
           ...req.body,
           userId: authResult.user._id
         });
+        console.log('Game history created successfully:', gameHistory._id);
         return res.status(201).json(gameHistory.toJSON());
       } else if (req.method === 'GET') {
         const urlParams = new URLSearchParams(req.url.split('?')[1] || '');
@@ -40,6 +42,7 @@ export default async function gamesRoutes(req, res, pathname) {
           .limit(limit)
           .populate('userId', 'name email');
 
+        console.log(`Found ${history.length} game history entries for user ${authResult.user._id}`);
         return res.json(history.map(h => h.toJSON()));
       }
     } catch (error) {

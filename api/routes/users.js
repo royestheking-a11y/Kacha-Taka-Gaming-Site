@@ -27,6 +27,7 @@ export default async function usersRoutes(req, res, pathname) {
       }
 
       const users = await User.find().select('-password').sort({ createdAt: -1 });
+      console.log(`Found ${users.length} users in database`);
       // Transform MongoDB documents to JSON format
       return res.json(users.map(user => user.toJSON()));
     } catch (error) {

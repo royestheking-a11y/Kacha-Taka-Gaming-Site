@@ -57,7 +57,9 @@ export default async function settingsRoutes(req, res, pathname) {
   if (pathname === '/settings/global' || pathname.startsWith('/settings/global/')) {
     try {
       if (req.method === 'GET') {
+        console.log('Fetching global settings');
         const settings = await GlobalSettings.getSettings();
+        console.log('Global settings found:', settings ? 'Yes' : 'No');
         return res.json(settings.toJSON());
       } else if (req.method === 'PUT') {
         const authResult = await authenticate(req);
@@ -88,7 +90,9 @@ export default async function settingsRoutes(req, res, pathname) {
   if (pathname === '/settings/stats' || pathname.startsWith('/settings/stats/')) {
     try {
       if (req.method === 'GET') {
+        console.log('Fetching platform stats');
         const stats = await PlatformStats.getStats();
+        console.log('Platform stats found:', stats ? 'Yes' : 'No');
         return res.json(stats.toJSON());
       } else if (req.method === 'PUT') {
         const authResult = await authenticate(req);

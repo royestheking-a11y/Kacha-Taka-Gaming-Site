@@ -21,10 +21,12 @@ export default async function transactionsRoutes(req, res, pathname) {
       }
 
       if (req.method === 'POST') {
+        console.log('Creating transaction:', req.body);
         const transaction = await Transaction.create({
           ...req.body,
           userId: authResult.user._id
         });
+        console.log('Transaction created successfully:', transaction._id);
         return res.status(201).json(transaction.toJSON());
       } else if (req.method === 'GET') {
         const urlParams = new URLSearchParams(req.url.split('?')[1] || '');
@@ -37,6 +39,7 @@ export default async function transactionsRoutes(req, res, pathname) {
           .sort({ createdAt: -1 })
           .populate('userId', 'name email');
 
+        console.log(`Found ${transactions.length} transactions for user ${authResult.user._id}`);
         return res.json(transactions.map(t => t.toJSON()));
       }
     } catch (error) {
