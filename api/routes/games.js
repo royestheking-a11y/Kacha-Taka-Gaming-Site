@@ -14,7 +14,7 @@ export default async function gamesRoutes(req, res, pathname) {
   }
 
   // Game history
-  if (pathname === '/games/history' || pathname.startsWith('/games/history?')) {
+  if (pathname === '/games/history' || pathname.startsWith('/games/history')) {
     try {
       const authResult = await authenticate(req);
       if (authResult.error) {

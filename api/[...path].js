@@ -25,36 +25,42 @@ export default async function handler(req, res) {
   let pathname = '/';
   try {
     // Method 1: Check for catch-all route parameter (most reliable for Vercel)
-    if (req.query && typeof req.query.path !== 'undefined') {
-      // Catch-all route: req.query.path can be a string or array
+    // For [...path].js, req.query.path contains the path segments
+    if (req.query && req.query.path !== undefined && req.query.path !== null) {
       if (Array.isArray(req.query.path)) {
         // Array format: ['settings', 'global'] -> '/settings/global'
-        pathname = '/' + req.query.path.filter(Boolean).join('/');
-      } else if (typeof req.query.path === 'string') {
+        const segments = req.query.path.filter(Boolean);
+        pathname = segments.length > 0 ? '/' + segments.join('/') : '/';
+      } else if (typeof req.query.path === 'string' && req.query.path.trim() !== '') {
         // String format: 'settings/global' -> '/settings/global'
-        pathname = '/' + req.query.path;
+        pathname = '/' + req.query.path.trim();
       }
     }
     
     // Method 2: Parse from URL if pathname is still '/' or invalid
-    if ((pathname === '/' || !pathname) && req.url) {
-      const urlPath = req.url.split('?')[0];
-      // Remove /api prefix if present
-      const extracted = urlPath.replace(/^\/api/, '') || '/';
-      if (extracted !== '/') {
-        pathname = extracted;
+    if (pathname === '/' && req.url) {
+      try {
+        const urlPath = req.url.split('?')[0];
+        // Remove /api prefix if present
+        let extracted = urlPath.replace(/^\/api/, '') || '/';
+        // Remove leading/trailing slashes
+        extracted = extracted.replace(/^\/+|\/+$/g, '');
+        if (extracted) {
+          pathname = '/' + extracted;
+        }
+      } catch (urlError) {
+        console.error('URL parsing error:', urlError);
       }
     }
     
-    // Clean up pathname
+    // Clean up pathname - ensure it's properly formatted
     // Remove query string if present in pathname
-    pathname = pathname.split('?')[0];
-    // Remove leading/trailing slashes except for root
-    pathname = pathname.replace(/^\/+|\/+$/g, '');
-    if (!pathname) {
-      pathname = '/';
-    } else if (!pathname.startsWith('/')) {
-      pathname = '/' + pathname;
+    pathname = pathname.split('?')[0].split('#')[0];
+    // Normalize slashes
+    pathname = pathname.replace(/\/+/g, '/');
+    // Ensure it starts with / and doesn't end with / (except root)
+    if (pathname !== '/') {
+      pathname = '/' + pathname.replace(/^\/+|\/+$/g, '');
     }
     
     // Log for debugging
@@ -65,7 +71,8 @@ export default async function handler(req, res) {
       query: req.query,
       queryPath: req.query?.path,
       queryPathType: typeof req.query?.path,
-      isArray: Array.isArray(req.query?.path)
+      isArray: Array.isArray(req.query?.path),
+      rawQuery: JSON.stringify(req.query)
     });
   } catch (pathError) {
     console.error('Path extraction error:', pathError);
@@ -95,13 +102,14 @@ export default async function handler(req, res) {
     } else if (pathname.startsWith('/settings')) {
       const result = await settingsRoutes(req, res, pathname);
       if (result) return result;
-    } else if (pathname === '/health') {
+    } else if (pathname === '/health' || pathname.startsWith('/health')) {
       return res.json({ 
         status: 'OK', 
         message: 'Server is running',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        pathname
       });
-    } else if (pathname === '/init') {
+    } else if (pathname === '/init' || pathname.startsWith('/init')) {
       if (req.method === 'POST') {
         const { initializeAdmin } = await import('./_lib/init.js');
         const admin = await initializeAdmin();

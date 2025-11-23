@@ -16,7 +16,7 @@ export default async function settingsRoutes(req, res, pathname) {
   }
 
   // Game settings
-  if (pathname === '/settings/game') {
+  if (pathname === '/settings/game' || pathname.startsWith('/settings/game/')) {
     try {
       if (req.method === 'GET') {
         const settings = await GameSettings.getSettings();
@@ -54,7 +54,7 @@ export default async function settingsRoutes(req, res, pathname) {
   }
 
   // Global settings
-  if (pathname === '/settings/global') {
+  if (pathname === '/settings/global' || pathname.startsWith('/settings/global/')) {
     try {
       if (req.method === 'GET') {
         const settings = await GlobalSettings.getSettings();
@@ -85,7 +85,7 @@ export default async function settingsRoutes(req, res, pathname) {
   }
 
   // Platform stats
-  if (pathname === '/settings/stats') {
+  if (pathname === '/settings/stats' || pathname.startsWith('/settings/stats/')) {
     try {
       if (req.method === 'GET') {
         const stats = await PlatformStats.getStats();

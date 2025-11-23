@@ -58,7 +58,7 @@ export default async function authRoutes(req, res, pathname) {
   }
 
   // Login
-  if (pathname === '/auth/login' && req.method === 'POST') {
+  if ((pathname === '/auth/login' || pathname.startsWith('/auth/login')) && req.method === 'POST') {
     try {
       const { email, password } = req.body;
       if (!email || !password) {
