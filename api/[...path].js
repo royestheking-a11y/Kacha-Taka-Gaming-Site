@@ -20,6 +20,18 @@ export default async function handler(req, res) {
     return res.status(200).json({});
   }
 
+  // Debug endpoint to test routing
+  if (req.url && req.url.includes('/api/debug')) {
+    return res.json({
+      message: 'Catch-all route is working',
+      url: req.url,
+      method: req.method,
+      query: req.query,
+      pathname: req.query?.path,
+      headers: Object.keys(req.headers)
+    });
+  }
+
   // Extract pathname from request
   // In Vercel catch-all route, req.query.path is an array of path segments
   let pathname = '/';
@@ -80,28 +92,30 @@ export default async function handler(req, res) {
   }
 
   try {
+    let handled = false;
+    
     // Route to appropriate handler
     if (pathname.startsWith('/auth')) {
-      const result = await authRoutes(req, res, pathname);
-      if (result) return result;
+      await authRoutes(req, res, pathname);
+      handled = true;
     } else if (pathname.startsWith('/users')) {
-      const result = await usersRoutes(req, res, pathname);
-      if (result) return result;
+      await usersRoutes(req, res, pathname);
+      handled = true;
     } else if (pathname.startsWith('/games')) {
-      const result = await gamesRoutes(req, res, pathname);
-      if (result) return result;
+      await gamesRoutes(req, res, pathname);
+      handled = true;
     } else if (pathname.startsWith('/transactions')) {
-      const result = await transactionsRoutes(req, res, pathname);
-      if (result) return result;
+      await transactionsRoutes(req, res, pathname);
+      handled = true;
     } else if (pathname.startsWith('/messages')) {
-      const result = await messagesRoutes(req, res, pathname);
-      if (result) return result;
+      await messagesRoutes(req, res, pathname);
+      handled = true;
     } else if (pathname.startsWith('/payments')) {
-      const result = await paymentsRoutes(req, res, pathname);
-      if (result) return result;
+      await paymentsRoutes(req, res, pathname);
+      handled = true;
     } else if (pathname.startsWith('/settings')) {
-      const result = await settingsRoutes(req, res, pathname);
-      if (result) return result;
+      await settingsRoutes(req, res, pathname);
+      handled = true;
     } else if (pathname === '/health' || pathname.startsWith('/health')) {
       return res.json({ 
         status: 'OK', 
@@ -124,16 +138,29 @@ export default async function handler(req, res) {
       return res.status(405).json({ message: 'Method not allowed' });
     }
 
-    console.log('Route not found:', pathname);
-    return res.status(404).json({ message: 'Not found', pathname });
+    // If route was handled but no response was sent, it means route not found in handler
+    if (handled && !res.headersSent) {
+      console.log('Route not found in handler:', pathname);
+      return res.status(404).json({ message: 'Route not found', pathname });
+    }
+    
+    // If route wasn't handled at all
+    if (!handled) {
+      console.log('Route not found:', pathname);
+      return res.status(404).json({ message: 'Not found', pathname });
+    }
   } catch (error) {
     console.error('API Error:', error);
     console.error('Error stack:', error.stack);
-    return res.status(500).json({ 
-      message: error.message || 'Internal server error',
-      pathname,
-      error: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
+    
+    // Only send error if response hasn't been sent
+    if (!res.headersSent) {
+      return res.status(500).json({ 
+        message: error.message || 'Internal server error',
+        pathname,
+        error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+    }
   }
 }
 
